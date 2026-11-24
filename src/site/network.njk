@@ -23,7 +23,7 @@ permalink: /network/
 </head>
 <body>
   <div id="controls">
-    <a class="back" href="/cnetworks-net/">← Back to Notes</a>
+    <a class="back" href="/">← Back to Notes</a>
     <h3 style="margin: 8px 0 4px;">Physics Controls</h3>
     <label>Repel Force: <span id="repelVal">-9.31174089068826</span>
       <input type="range" id="repel" min="0" max="30" step="any" value="9.31174089068826">
@@ -41,7 +41,7 @@ permalink: /network/
   <div id="graph"></div>
 
   <script>
-    const BASE = '/cnetworks-net';
+    const BASE = "{{ '/' | url }}".replace(/\/$/, '');
     const DEVICE_PATH = '/devices';
     const PATH_COLOR = 13108194;
     const TAG_COLORS = {
@@ -143,7 +143,7 @@ permalink: /network/
           })
           .onNodeClick(node => {
             if (!node.url) return;
-            const target = node.url.startsWith(BASE) ? node.url : `${BASE}${node.url}`;
+            const target = `${BASE}${node.url.startsWith('/') ? node.url : `/${node.url}`}`;
             window.location.href = target;
           });
 

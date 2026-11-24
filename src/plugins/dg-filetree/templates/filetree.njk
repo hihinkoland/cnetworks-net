@@ -59,7 +59,7 @@
            (function () {
              var root = document.currentScript.previousElementSibling;
              var trim = function (p) { return p.replace(/\/+$/, "") || "/"; };
-             fetch("/cnetworks-net/filetree.html?v={{ meta.buildDate | isoDate }}")
+             fetch("{{ '/filetree.html' | url }}?v={{ meta.buildDate | isoDate }}")
                .then(function (res) {
                  if (!res.ok) throw new Error("HTTP " + res.status);
                  return res.text();
