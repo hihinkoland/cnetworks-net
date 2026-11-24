@@ -37,8 +37,8 @@ permalink: /network/
   <div id="controls">
     <a class="back" href="/">← Back to Notes</a>
     <h3 style="margin: 8px 0 4px;">Physics Controls</h3>
-    <label>Repel Force: <span id="repelVal">-60</span>
-      <input type="range" id="repel" min="0" max="250" step="any" value="60">
+    <label>Repel Force: <span id="repelVal">-100</span>
+      <input type="range" id="repel" min="0" max="250" step="any" value="100">
     </label>
     <label>Link Strength: <span id="linkStrengthVal">0.3</span>
       <input type="range" id="linkStrength" min="0" max="2" step="0.01" value="0.3">
@@ -70,18 +70,18 @@ permalink: /network/
     const BASE = "{{ '/' | url }}".replace(/\/$/, '');
     const DEVICE_PATH = '/devices';
     const ROLE_TAG_COLORS = {
-      dns: 0xff5252,
-      chatserver: 0xb8ff5a,
-      has_dns_name: 0x579bff
+      dns: 0xff0000,
+      chatserver: 0x00ff00,
+      has_dns_name: 0x0000ff
     };
-    const DEFAULT_COLOR = 0xd9dee7;
-    const MAYBE_CHATSERVER_COLOR = 0xa6acb7;
-    const NO_DACS_IP4_COLOR = 0x5d6571;
+    const DEFAULT_COLOR = 0xababab;
+    const MAYBE_CHATSERVER_COLOR = 0x989898;
+    const NO_DACS_IP4_COLOR = 0x854585;
     const GROUPS = [
       { tag: 'chatserver', label: 'Chat servers', icon: 'C', color: ROLE_TAG_COLORS.chatserver, x: 90, y: 0 },
-      { tag: 'maybe_chatserver', label: 'Maybe chat servers', icon: '?', color: MAYBE_CHATSERVER_COLOR, x: 170, y: 0 },
+      { tag: 'maybe_chatserver', label: 'Maybe chat servers', icon: '?', color: MAYBE_CHATSERVER_COLOR, x: 90, y: -80 },
       { tag: 'dacs_ip4', label: 'DACS IPv4', icon: '4', color: 0x9b7cff, x: 0, y: 100 },
-      { tag: 'dns', label: 'DNS', icon: 'D', color: ROLE_TAG_COLORS.dns, x: -90, y: 0 }
+      { tag: 'dns', label: 'DNS', icon: 'D', color: ROLE_TAG_COLORS.dns, x: -100, y: -50 }
     ];
     let groupingMode = 'point';
     let groupingStrength = 0.1;
