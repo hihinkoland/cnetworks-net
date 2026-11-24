@@ -1,5 +1,5 @@
 ---
-{"dg-publish":true,"permalink":"/dumps/dns_records/","dg-note-properties":{}}
+{"dg-publish":true,"permalink":"/dumps/dns_records/","hideInGraph":true,"dg-note-properties":{}}
 ---
 
 
