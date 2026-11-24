@@ -81,22 +81,23 @@ permalink: /network/
     const ROLE_TAG_COLORS = {
       dns: 0xff2222,
       chatserver: 0x22ff22,
-      has_dns_name: 0x2222ff
+      maybe_chatserver: 0x006700,
+      has_dns_name: 0x4444ff
     };
     const DEFAULT_COLOR = 0x757575;
-    const MAYBE_CHATSERVER_COLOR = 0x006700;
     const NO_DACS_IP4_COLOR = 0x854585;
     const GROUPS = [
       { tag: 'chatserver', label: 'Chat servers', icon: 'C', color: ROLE_TAG_COLORS.chatserver, x: 200, y: 0 },
-      { tag: 'maybe_chatserver', label: 'Maybe chat servers', icon: 'M', color: MAYBE_CHATSERVER_COLOR, x: 20, y: -200 },
+      { tag: 'maybe_chatserver', label: 'Maybe chat servers', icon: 'M', color: ROLE_TAG_COLORS.maybe_chatserver, x: 20, y: -200 },
       { tag: 'dacs_ip4', label: 'DACS IPv4', icon: '4', color: 0x9b7cff, x: 0, y: 100 },
       { tag: 'dns', label: 'DNS', icon: 'D', color: ROLE_TAG_COLORS.dns, x: -100, y: -100 }
     ];
     let groupingMode = 'point';
     let groupingStrength = 0.1;
     let showGroupAnchors = false;
-    const LABEL_COMPACT_SCALE = 0.8;
-    const LABEL_HIDE_SCALE = 0.5;
+    const LABEL_COMPACT_SCALE = 1.4;
+    const LABEL_HIDE_SCALE = 0.7;
+    const DEFAULT_SCALE = 2.0;
     const HIDE_TAGS = new Set(['note', 'index']);
 
     function normalizeTag(tag) {
@@ -201,7 +202,6 @@ permalink: /network/
       }
 
       if (!tags.has('dacs_ip4')) return colorToRgb(NO_DACS_IP4_COLOR);
-      if (tags.has('maybe_chatserver')) return colorToRgb(MAYBE_CHATSERVER_COLOR);
       return colorToRgb(DEFAULT_COLOR);
     }
 
@@ -369,6 +369,8 @@ permalink: /network/
             const target = `${BASE}${node.url.startsWith('/') ? node.url : `/${node.url}`}`;
             window.location.href = target;
           });
+
+        Graph.zoom(DEFAULT_SCALE, 0);
 
         const initialRepel = Number(repelInput.value);
         const initialLinkDistance = Number(distanceInput.value);
