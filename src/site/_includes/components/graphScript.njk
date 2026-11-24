@@ -341,7 +341,8 @@ function renderGraph(graphData, containerId, isFullScreen) {
                 const dist = Math.sqrt(dx * dx + dy * dy);
                 if (dt < 500 && dist < 5) {
                     if (node.url) {
-                        window.location = node.url;
+                        const targetUrl = node.url.startsWith('/cnetworks-net') ? node.url : `/cnetworks-net${node.url}`;
+                        window.location = targetUrl;
                     }
                 }
             })
