@@ -66,7 +66,7 @@ permalink: /network/
         <option value="none">none</option>
       </select>
     </label>
-    <label><input type="checkbox" id="showGroupAnchors" checked> Show grouping anchors</label>
+    <label><input type="checkbox" id="showGroupAnchors"> Show grouping anchors</label>
   </div>
   <aside id="node-info" aria-live="polite" hidden>
     <h2 id="node-info-name"></h2>
@@ -83,8 +83,8 @@ permalink: /network/
       chatserver: 0x22ff22,
       has_dns_name: 0x2222ff
     };
-    const DEFAULT_COLOR = 0xababab;
-    const MAYBE_CHATSERVER_COLOR = 0x008800;
+    const DEFAULT_COLOR = 0x757575;
+    const MAYBE_CHATSERVER_COLOR = 0x006700;
     const NO_DACS_IP4_COLOR = 0x854585;
     const GROUPS = [
       { tag: 'chatserver', label: 'Chat servers', icon: 'C', color: ROLE_TAG_COLORS.chatserver, x: 200, y: 0 },
@@ -94,7 +94,7 @@ permalink: /network/
     ];
     let groupingMode = 'point';
     let groupingStrength = 0.1;
-    let showGroupAnchors = true;
+    let showGroupAnchors = false;
     const LABEL_COMPACT_SCALE = 0.8;
     const LABEL_HIDE_SCALE = 0.5;
     const HIDE_TAGS = new Set(['note', 'index']);
