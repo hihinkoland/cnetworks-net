@@ -569,6 +569,12 @@ pagePanelMedia.addEventListener('change', evt => {
         </div>
     </div>
     <div id="link-graph"></div>
+    {% if graph.nodes[page.url] or graph.nodes[graph.homeAlias] %}
+    <a class="network-map-link" href="{{ '/network/' | url }}">
+        <i data-lucide="network" aria-hidden="true"></i>
+        <span>Open network map</span>
+    </a>
+    {% endif %}
     <div x-show="showFullGraph" id="full-graph" class="show" style="display: none;" x-on:click.self="window.__graph.closeFullGraph(); showFullGraph = false;">
         <span id="full-graph-close" x-on:click="window.__graph.closeFullGraph(); showFullGraph = false;"><i data-lucide="x" aria-hidden="true"></i></span>
         <div id="full-graph-container"></div>

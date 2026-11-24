@@ -11,4 +11,24 @@ body {
     //   color: black;
     //  }
     --dg-content-max-width: 1000px;
+
+    #graph-component .network-map-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        margin-top: -14px;
+        margin-bottom: 8px;
+        color: var(--text-muted);
+        font-size: 0.75rem;
+        text-decoration: none;
+
+        &:hover {
+            color: var(--text-accent);
+        }
+
+        svg {
+            width: 0.9rem;
+            height: 0.9rem;
+        }
+    }
 }
