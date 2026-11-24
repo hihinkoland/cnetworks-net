@@ -2,7 +2,6 @@
 {"dg-publish":true,"permalink":"/Stats/","tags":["gardenEntry"],"dg-note-properties":{}}
 ---
 
-
 # Network Map Stats
 
 **Total Devices:** 79

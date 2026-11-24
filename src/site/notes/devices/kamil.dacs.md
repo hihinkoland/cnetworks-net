@@ -8,6 +8,8 @@
 **Device Name:** kamil.dacs
 **MAC Address:** da:ea:4f:d1:af:02
 
+> That's me!
+
 ## IP Addresses
 - `100.110.120.21`
 - `fd00:dac5:bc5::21:1`
