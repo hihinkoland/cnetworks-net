@@ -15,9 +15,11 @@ permalink: /network/
       position: fixed; top: 16px; left: 16px; z-index: 10;
       background: #262626; padding: 14px; border-radius: 8px;
       border: 1px solid #363636; width: 220px; font-size: 13px;
+      max-height: calc(100vh - 32px); overflow-y: auto;
     }
     #controls label { display: block; margin-top: 10px; }
     #controls input[type="range"] { width: 100%; }
+    #controls select { box-sizing: border-box; width: 100%; margin-top: 4px; padding: 4px; }
     a.back { color: #8b5cf6; text-decoration: none; font-weight: bold; }
     #node-info {
       position: fixed; top: 16px; right: 16px; z-index: 11;
@@ -35,17 +37,27 @@ permalink: /network/
   <div id="controls">
     <a class="back" href="/">← Back to Notes</a>
     <h3 style="margin: 8px 0 4px;">Physics Controls</h3>
-    <label>Repel Force: <span id="repelVal">-30</span>
-      <input type="range" id="repel" min="0" max="60" step="any" value="30">
+    <label>Repel Force: <span id="repelVal">-60</span>
+      <input type="range" id="repel" min="0" max="250" step="any" value="60">
     </label>
-    <label>Link Strength: <span id="linkStrengthVal">1</span>
-      <input type="range" id="linkStrength" min="0" max="2" step="0.01" value="1">
+    <label>Link Strength: <span id="linkStrengthVal">0.3</span>
+      <input type="range" id="linkStrength" min="0" max="2" step="0.01" value="0.3">
     </label>
     <label>Link Distance: <span id="distVal">25</span>
       <input type="range" id="dist" min="10" max="500" value="25">
     </label>
-    <label>Center Gravity: <span id="centerVal">0.2</span>
-      <input type="range" id="center" min="0" max="1" step="any" value="0.2">
+    <label>Center Gravity: <span id="centerVal">0.03</span>
+      <input type="range" id="center" min="0" max="1" step="any" value="0.03">
+    </label>
+    <label>Grouping Force: <span id="groupingForceVal">0.1</span>
+      <input type="range" id="groupingForce" min="0" max="1" step="0.01" value="0.1">
+    </label>
+    <label for="groupingMode">Grouping Mode
+      <select id="groupingMode">
+        <option value="point" selected>point</option>
+        <option value="node">node</option>
+        <option value="none">none</option>
+      </select>
     </label>
   </div>
   <aside id="node-info" aria-live="polite" hidden>
@@ -65,6 +77,14 @@ permalink: /network/
     const DEFAULT_COLOR = 0xd9dee7;
     const MAYBE_CHATSERVER_COLOR = 0xa6acb7;
     const NO_DACS_IP4_COLOR = 0x5d6571;
+    const GROUPS = [
+      { tag: 'chatserver', label: 'Chat servers', icon: 'C', color: ROLE_TAG_COLORS.chatserver, x: 90, y: 0 },
+      { tag: 'maybe_chatserver', label: 'Maybe chat servers', icon: '?', color: MAYBE_CHATSERVER_COLOR, x: 170, y: 0 },
+      { tag: 'dacs_ip4', label: 'DACS IPv4', icon: '4', color: 0x9b7cff, x: 0, y: 100 },
+      { tag: 'dns', label: 'DNS', icon: 'D', color: ROLE_TAG_COLORS.dns, x: -90, y: 0 }
+    ];
+    let groupingMode = 'point';
+    let groupingStrength = 0.1;
 
     function normalizeTag(tag) {
       return String(tag).trim().replace(/^#+/, '').toLowerCase();
@@ -115,19 +135,46 @@ permalink: /network/
       .then(res => res.json())
       .then(raw => {
         const allNodes = Array.isArray(raw.nodes) ? raw.nodes : Object.values(raw.nodes);
-        const nodes = allNodes.filter(isInDevicePath);
-        const nodeTags = new Map(nodes.map(node => [node.id, normalizeTags(node)]));
-        const nodeTagLists = new Map(nodes.map(node => [node.id, getNodeTagList(node)]));
-        const nodeIds = new Set(nodes.map(node => node.id));
+        const deviceNodes = allNodes.filter(isInDevicePath);
+        const nodeTags = new Map(deviceNodes.map(node => [node.id, normalizeTags(node)]));
+        const nodeTagLists = new Map(deviceNodes.map(node => [node.id, getNodeTagList(node)]));
+        const nodeGroups = new Map(deviceNodes.map(node => [
+          node.id,
+          GROUPS.filter(group => nodeTags.get(node.id).has(group.tag))
+        ]));
+        const groupAnchors = GROUPS.map(group => ({
+          id: `group:${group.tag}`,
+          isGroupAnchor: true,
+          group,
+          title: group.label,
+          x: group.x,
+          y: group.y,
+          fx: group.x,
+          fy: group.y,
+          val: 4
+        }));
+        const anchorsByTag = new Map(groupAnchors.map(anchor => [anchor.group.tag, anchor]));
+        const nodes = [...deviceNodes, ...groupAnchors];
+        const nodeIds = new Set(deviceNodes.map(node => node.id));
         const links = (raw.links || []).filter(link => nodeIds.has(link.source) && nodeIds.has(link.target));
         const nodeInfo = document.getElementById('node-info');
         const nodeInfoName = document.getElementById('node-info-name');
         const nodeInfoTags = document.getElementById('node-info-tags');
+        const repelInput = document.getElementById('repel');
+        const linkStrengthInput = document.getElementById('linkStrength');
+        const distanceInput = document.getElementById('dist');
+        const centerInput = document.getElementById('center');
+        const groupingForceInput = document.getElementById('groupingForce');
+        const groupingModeInput = document.getElementById('groupingMode');
+        groupingMode = groupingModeInput.value;
+        groupingStrength = Number(groupingForceInput.value);
 
         const Graph = ForceGraph()(document.getElementById('graph'))
           .graphData({ nodes, links })
           .backgroundColor('#1e1e1e')
           .nodeId('id')
+          .nodeVal(node => node.isGroupAnchor ? 4 : 1)
+          .nodeVisibility(node => !node.isGroupAnchor || groupingMode !== 'none')
           .nodeLabel(node => node.title || node.id)
           .linkColor(() => 'rgba(255,255,255,0.2)')
           .linkDirectionalArrowLength(4)
@@ -135,14 +182,51 @@ permalink: /network/
           .linkDirectionalParticles(1)
           .linkDirectionalParticleSpeed(0.004)
           .nodeCanvasObject((node, ctx, globalScale) => {
+            if (node.isGroupAnchor) {
+              if (groupingMode === 'none') return;
+
+              ctx.save();
+              ctx.fillStyle = `rgb(${colorToRgb(node.group.color).join(',')})`;
+              if (groupingMode === 'point') {
+                ctx.beginPath();
+                ctx.moveTo(node.x, node.y - 10);
+                ctx.lineTo(node.x + 10, node.y);
+                ctx.lineTo(node.x, node.y + 10);
+                ctx.lineTo(node.x - 10, node.y);
+                ctx.closePath();
+                ctx.fill();
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1 / globalScale;
+                ctx.stroke();
+                ctx.fillStyle = '#1e1e1e';
+                ctx.font = `bold ${10 / globalScale}px Sans-Serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(node.group.icon, node.x, node.y);
+              } else {
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, 3, 0, 2 * Math.PI, false);
+                ctx.fill();
+                if (globalScale > 0.35) {
+                  ctx.font = `${Math.min(12 / globalScale, 12)}px Sans-Serif`;
+                  ctx.textAlign = 'center';
+                  ctx.textBaseline = 'top';
+                  ctx.fillStyle = '#dcddde';
+                  ctx.fillText(node.group.label, node.x, node.y + 7);
+                }
+              }
+              ctx.restore();
+              return;
+            }
+
             const label = node.title || node.id;
-            const fontSize = 12 / globalScale;
+            const fontSize = Math.min(12 / globalScale, 12);
             ctx.beginPath();
             ctx.arc(node.x, node.y, 3, 0, 2 * Math.PI, false);
             ctx.fillStyle = `rgb(${colorNode(nodeTags.get(node.id)).join(',')})`;
             ctx.fill();
 
-            if (globalScale > 0.8) {
+            if (globalScale > 0.35) {
               ctx.font = `${fontSize}px Sans-Serif`;
               ctx.textAlign = 'center';
               ctx.textBaseline = 'top';
@@ -156,9 +240,13 @@ permalink: /network/
               return;
             }
 
-            nodeInfoName.textContent = node.title || node.url || String(node.id);
+            nodeInfoName.textContent = node.isGroupAnchor
+              ? `${node.group.label} group center`
+              : node.title || node.url || String(node.id);
             nodeInfoTags.replaceChildren();
-            const tags = nodeTagLists.get(node.id) || [];
+            const tags = node.isGroupAnchor
+              ? [`#${node.group.tag}`, 'Drag to move this group center']
+              : nodeTagLists.get(node.id) || [];
             if (tags.length === 0) {
               const item = document.createElement('li');
               item.textContent = 'No tags';
@@ -166,11 +254,23 @@ permalink: /network/
             } else {
               for (const tag of tags) {
                 const item = document.createElement('li');
-                item.textContent = `#${tag}`;
+                item.textContent = node.isGroupAnchor && !tag.startsWith('#') ? tag : `#${tag}`;
                 nodeInfoTags.appendChild(item);
               }
             }
             nodeInfo.hidden = false;
+          })
+          .onNodeDrag(node => {
+            if (node.isGroupAnchor) {
+              node.fx = node.x;
+              node.fy = node.y;
+            }
+          })
+          .onNodeDragEnd(node => {
+            if (node.isGroupAnchor) {
+              node.fx = node.x;
+              node.fy = node.y;
+            }
           })
           .onNodeClick(node => {
             if (!node.url) return;
@@ -178,56 +278,68 @@ permalink: /network/
             window.location.href = target;
           });
 
-        const initialRepel = 30;
-        const initialLinkStrength = 1;
-        const initialLinkDistance = 25;
-        const initialCenter = 0.2;
-        Graph.d3Force('charge').strength(-initialRepel);
+        const initialRepel = Number(repelInput.value);
+        const initialLinkStrength = Number(linkStrengthInput.value);
+        const initialLinkDistance = Number(distanceInput.value);
+        const initialCenter = Number(centerInput.value);
+        Graph.d3Force('charge').strength(node => node.isGroupAnchor ? 0 : -initialRepel);
         Graph.d3Force('link').strength(initialLinkStrength).distance(initialLinkDistance);
         Graph.d3Force('x', d3.forceX(0).strength(initialCenter));
         Graph.d3Force('y', d3.forceY(0).strength(initialCenter));
 
-        const chatTagStrength = node => {
-          const tags = nodeTags.get(node.id);
-          return tags?.has('chatserver') || tags?.has('maybe_chatserver') ? 0.4 : 0;
-        };
-        Graph.d3Force('chat-cluster-x', d3.forceX(90).strength(chatTagStrength));
-        Graph.d3Force('chat-cluster-y', d3.forceY(0).strength(chatTagStrength));
-        Graph.d3Force(
-          'maybe-chatserver-outskirts',
-          d3.forceRadial(
-            node => nodeTags.get(node.id)?.has('maybe_chatserver') ? 80 : 0,
-            90,
-            0
-          ).strength(node => nodeTags.get(node.id)?.has('maybe_chatserver') ? 0.45 : 0)
-        );
+        const groupForce = alpha => {
+          if (groupingMode === 'none' || groupingStrength === 0) return;
 
-        document.getElementById('repel').addEventListener('input', e => {
+          for (const node of deviceNodes) {
+            const groups = nodeGroups.get(node.id);
+            if (!groups.length || node.x == null || node.y == null) continue;
+
+            const targetX = groups.reduce((total, group) => total + anchorsByTag.get(group.tag).x, 0) / groups.length;
+            const targetY = groups.reduce((total, group) => total + anchorsByTag.get(group.tag).y, 0) / groups.length;
+            node.vx += (targetX - node.x) * groupingStrength * alpha;
+            node.vy += (targetY - node.y) * groupingStrength * alpha;
+          }
+        };
+        Graph.d3Force('grouping', groupForce);
+
+        repelInput.addEventListener('input', e => {
           const val = Number(e.target.value);
           document.getElementById('repelVal').textContent = `-${val}`;
-          Graph.d3Force('charge').strength(-val);
+          Graph.d3Force('charge').strength(node => node.isGroupAnchor ? 0 : -val);
           Graph.d3ReheatSimulation();
         });
 
-        document.getElementById('linkStrength').addEventListener('input', e => {
+        linkStrengthInput.addEventListener('input', e => {
           const val = Number(e.target.value);
           document.getElementById('linkStrengthVal').textContent = val;
           Graph.d3Force('link').strength(val);
           Graph.d3ReheatSimulation();
         });
 
-        document.getElementById('dist').addEventListener('input', e => {
+        distanceInput.addEventListener('input', e => {
           const val = Number(e.target.value);
           document.getElementById('distVal').textContent = val;
           Graph.d3Force('link').distance(val);
           Graph.d3ReheatSimulation();
         });
 
-        document.getElementById('center').addEventListener('input', e => {
+        centerInput.addEventListener('input', e => {
           const val = Number(e.target.value);
           document.getElementById('centerVal').textContent = val;
           Graph.d3Force('x', d3.forceX(0).strength(val));
           Graph.d3Force('y', d3.forceY(0).strength(val));
+          Graph.d3ReheatSimulation();
+        });
+
+        groupingForceInput.addEventListener('input', e => {
+          groupingStrength = Number(e.target.value);
+          document.getElementById('groupingForceVal').textContent = groupingStrength.toFixed(2);
+          Graph.d3ReheatSimulation();
+        });
+
+        groupingModeInput.addEventListener('change', e => {
+          groupingMode = e.target.value;
+          Graph.nodeVisibility(node => !node.isGroupAnchor || groupingMode !== 'none');
           Graph.d3ReheatSimulation();
         });
       });
