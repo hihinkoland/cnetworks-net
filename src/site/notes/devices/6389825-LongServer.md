@@ -1,5 +1,5 @@
 ---
-{"dg-publish":true,"permalink":"/devices/6389825-LongServer/","tags":["chatserver","dacs_ip4"],"dg-note-properties":{"tags":["chatserver","dacs_ip4"]}}
+{"dg-publish":true,"permalink":"/devices/6389825-LongServer/","tags":["chatserver","dacs_ip4"],"updated":"2026-11-24T16:28:06.300+01:00","dg-note-properties":{"tags":["chatserver","dacs_ip4"]}}
 ---
 
 # `6389825-LongServer`

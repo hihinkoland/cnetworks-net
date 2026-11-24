@@ -1,5 +1,5 @@
 ---
-{"dg-publish":true,"permalink":"/devices/david-weis.dacs/","tags":["has_dns_name","chatserver","dacs_ip4"],"dg-note-properties":{"tags":["has_dns_name","chatserver","dacs_ip4"]}}
+{"dg-publish":true,"permalink":"/devices/david-weis.dacs/","tags":["has_dns_name","chatserver","dacs_ip4"],"updated":"2026-11-24T16:28:06.294+01:00","dg-note-properties":{"tags":["has_dns_name","chatserver","dacs_ip4"]}}
 ---
 
 # `david-weis.dacs`

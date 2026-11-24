@@ -1,5 +1,5 @@
 ---
-{"dg-publish":true,"permalink":"/devices/adam.dacs/","tags":["has_dns_name","dacs_ip4"],"dg-note-properties":{"tags":["has_dns_name","dacs_ip4"]}}
+{"dg-publish":true,"permalink":"/devices/adam.dacs/","tags":["has_dns_name","dacs_ip4"],"updated":"2026-11-24T16:28:06.286+01:00","dg-note-properties":{"tags":["has_dns_name","dacs_ip4"]}}
 ---
 
 # `adam.dacs`

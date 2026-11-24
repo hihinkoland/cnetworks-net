@@ -1,5 +1,5 @@
 ---
-{"dg-publish":true,"permalink":"/devices/linux4/","tags":["dacs_ip4"],"dg-note-properties":{"tags":["dacs_ip4"]}}
+{"dg-publish":true,"permalink":"/devices/linux4/","tags":["dacs_ip4"],"updated":"2026-11-24T16:28:06.267+01:00","dg-note-properties":{"tags":["dacs_ip4"]}}
 ---
 
 # `linux4`

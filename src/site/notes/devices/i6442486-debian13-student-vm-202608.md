@@ -1,5 +1,5 @@
 ---
-{"dg-publish":true,"permalink":"/devices/i6442486-debian13-student-vm-202608/","tags":["dacs_ip4"],"dg-note-properties":{"tags":["dacs_ip4"]}}
+{"dg-publish":true,"permalink":"/devices/i6442486-debian13-student-vm-202608/","tags":["dacs_ip4"],"updated":"2026-11-24T16:28:06.272+01:00","dg-note-properties":{"tags":["dacs_ip4"]}}
 ---
 
 # `i6442486-debian13-student-vm-202608`
