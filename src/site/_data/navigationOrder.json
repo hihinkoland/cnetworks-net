@@ -1,9 +1,14 @@
 {
   "/": [
     "Stats",
+    "index",
     "devices",
-    "dumps",
-    "index"
+    "dumps"
+  ],
+  "/index": [
+    "Chat Servers",
+    "Device",
+    "Dns"
   ],
   "/devices": [
     "6361532-testTA",
@@ -83,16 +88,12 @@
     "mihai.dacs",
     "minh.dacs",
     "template-debian13-student-vm-202608",
-    "tony.dacs"
+    "tony.dacs",
+    "sebas--edu-vm-vl51"
   ],
   "/dumps": [
     "device",
     "dns_records",
     "tags"
-  ],
-  "/index": [
-    "Chat Servers",
-    "Device",
-    "Dns"
   ]
 }

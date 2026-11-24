@@ -13,8 +13,8 @@
 **Last Updated:** 2026-11-24 14:09:10
 
 ## Device Counts by Tag
-[[index/Device|> All devices: 79
-]]
+> [[index/Device\|All devices:]] 79
+
 | Tag                             | TID              | Device Count |
 |---------------------------------|------------------|--------------|
 | DNS Servers                     | dns              |            1 |
