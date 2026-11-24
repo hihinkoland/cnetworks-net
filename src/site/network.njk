@@ -1,0 +1,108 @@
+---
+permalink: /network/
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Network View</title>
+  <script src="https://unpkg.com"></script>
+  <style>
+    body { margin: 0; background: #1e1e1e; color: #dcddde; font-family: sans-serif; overflow: hidden; }
+    #graph { width: 100vw; height: 100vh; }
+    #controls {
+      position: fixed; top: 16px; left: 16px; z-index: 10;
+      background: #262626; padding: 14px; border-radius: 8px;
+      border: 1px solid #363636; width: 220px; font-size: 13px;
+    }
+    #controls label { display: block; margin-top: 10px; }
+    #controls input[type="range"] { width: 100%; }
+    a.back { color: #8b5cf6; text-decoration: none; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div id="controls">
+    <a class="back" href="/cnetworks-net/">← Back to Notes</a>
+    <h3 style="margin: 8px 0 4px;">Physics Controls</h3>
+    <label>Repel Force: <span id="repelVal">-120</span>
+      <input type="range" id="repel" min="-500" max="-10" value="-120">
+    </label>
+    <label>Link Distance: <span id="distVal">60</span>
+      <input type="range" id="dist" min="10" max="250" value="60">
+    </label>
+    <label>Center Gravity: <span id="centerVal">0.05</span>
+      <input type="range" id="center" min="0" max="0.5" step="0.01" value="0.05">
+    </label>
+  </div>
+  <div id="graph"></div>
+
+  <script>
+    const BASE = '/cnetworks-net';
+
+    fetch(`${BASE}/graph.json`)
+      .then(res => res.json())
+      .then(raw => {
+        // Digital Garden stores nodes as an object keyed by ID; convert to array
+        const nodes = Array.isArray(raw.nodes) ? raw.nodes : Object.values(raw.nodes);
+        const links = raw.links || [];
+
+        const Graph = ForceGraph()(document.getElementById('graph'))
+          .graphData({ nodes, links })
+          .backgroundColor('#1e1e1e')
+          .nodeId('id')
+          .nodeLabel(node => node.title || node.id)
+          .nodeAutoColorBy(node => (node.tags && node.tags[0]) || 'default')
+          .linkColor(() => 'rgba(255,255,255,0.2)')
+          .linkDirectionalParticles(1)
+          .linkDirectionalParticleSpeed(0.004)
+          .nodeCanvasObject((node, ctx, globalScale) => {
+            const label = node.title || node.id;
+            const fontSize = 12 / globalScale;
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, 5, 0, 2 * Math.PI, false);
+            ctx.fillStyle = node.color || '#8b5cf6';
+            ctx.fill();
+
+            if (globalScale > 0.8) {
+              ctx.font = `${fontSize}px Sans-Serif`;
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'top';
+              ctx.fillStyle = '#dcddde';
+              ctx.fillText(label, node.x, node.y + 7);
+            }
+          })
+          .onNodeClick(node => {
+            if (!node.url) return;
+            const target = node.url.startsWith(BASE) ? node.url : `${BASE}${node.url}`;
+            window.location.href = target;
+          });
+
+        // Live Obsidian-style physics sliders
+        Graph.d3Force('charge').strength(-120);
+        Graph.d3Force('link').distance(60);
+
+        document.getElementById('repel').addEventListener('input', e => {
+          const val = Number(e.target.value);
+          document.getElementById('repelVal').textContent = val;
+          Graph.d3Force('charge').strength(val);
+          Graph.d3ReheatSimulation();
+        });
+
+        document.getElementById('dist').addEventListener('input', e => {
+          const val = Number(e.target.value);
+          document.getElementById('distVal').textContent = val;
+          Graph.d3Force('link').distance(val);
+          Graph.d3ReheatSimulation();
+        });
+
+        document.getElementById('center').addEventListener('input', e => {
+          const val = Number(e.target.value);
+          document.getElementById('centerVal').textContent = val;
+          Graph.d3Force('x', d3.forceX(0).strength(val));
+          Graph.d3Force('y', d3.forceY(0).strength(val));
+          Graph.d3ReheatSimulation();
+        });
+      });
+  </script>
+</body>
+</html>

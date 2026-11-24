@@ -6,9 +6,33 @@ import { drag as d3Drag } from 'd3-drag';
 
 // Pixi v7 loaded as UMD global
 const { Application, Container, Graphics, Text, Circle } = PIXI;
+const pathPrefix = "{{ '/' | url }}";
+
+function normalizePath(path) {
+    let decoded;
+    try {
+        decoded = decodeURI(path);
+    } catch {
+        decoded = path;
+    }
+    return decoded.length > 1 ? `${decoded.replace(/\/+$/, '')}/` : '/';
+}
+
+function getSiteRelativePath(path) {
+    const normalizedPath = normalizePath(path);
+    const normalizedPrefix = normalizePath(new URL(pathPrefix, window.location.origin).pathname);
+    if (normalizedPrefix !== '/' && normalizedPath.startsWith(normalizedPrefix)) {
+        return `/${normalizedPath.slice(normalizedPrefix.length)}`;
+    }
+    return normalizedPath;
+}
+
+function getSiteUrl(path) {
+    return new URL(path.replace(/^\/+/, ''), new URL(pathPrefix, window.location.origin)).href;
+}
 
 async function fetchGraphData() {
-    const graphData = await fetch('/cnetworks-net/graph.json').then(res => res.json());
+    const graphData = await fetch(getSiteUrl('/graph.json')).then(res => res.json());
     const fullGraphData = filterFullGraphData(graphData);
     return { graphData, fullGraphData };
 }
@@ -28,12 +52,12 @@ function filterLocalGraphData(graphData, depth) {
     depth = depth || 1;
     const allNodes = JSON.parse(JSON.stringify(graphData.nodes));
     const allLinks = JSON.parse(JSON.stringify(graphData.links));
-    let currentLink = decodeURI(window.location.pathname);
+    const currentLink = getSiteRelativePath(window.location.pathname);
 
     let currentNode = allNodes[currentLink];
     if (!currentNode) {
         const lower = currentLink.toLowerCase();
-        currentNode = Object.values(allNodes).find(v => v.url.toLowerCase() === lower);
+        currentNode = Object.values(allNodes).find(v => normalizePath(v.url).toLowerCase() === lower);
     }
     if (!currentNode) {
         currentNode = Object.values(allNodes).find(v => v.home);
@@ -52,12 +76,10 @@ function filterLocalGraphData(graphData, depth) {
     // whose own direct links must still count even if it happens to be hidden
     // (e.g. viewing the local graph on the home page).
     const hiddenIds = new Set(Object.values(allNodes).filter(n => n.hide).map(n => n.id));
-    const canBridge = id => id === currentNode.id || !hiddenIds.has(id);
-
-    // Build an id-based adjacency map so we can walk out to arbitrary depth
+    // Build an id-based adjacency map. Hidden nodes may be reached, but BFS
+    // below only walks through them when one is the current node.
     const adjacency = {};
     for (const l of allLinks) {
-        if (!canBridge(l.source) || !canBridge(l.target)) continue;
         (adjacency[l.source] = adjacency[l.source] || new Set()).add(l.target);
         (adjacency[l.target] = adjacency[l.target] || new Set()).add(l.source);
     }
@@ -71,7 +93,9 @@ function filterLocalGraphData(graphData, depth) {
             for (const neighborId of (adjacency[id] || [])) {
                 if (!visited.has(neighborId)) {
                     visited.add(neighborId);
-                    next.add(neighborId);
+                    if (neighborId === currentNode.id || !hiddenIds.has(neighborId)) {
+                        next.add(neighborId);
+                    }
                 }
             }
         }
@@ -341,8 +365,7 @@ function renderGraph(graphData, containerId, isFullScreen) {
                 const dist = Math.sqrt(dx * dx + dy * dy);
                 if (dt < 500 && dist < 5) {
                     if (node.url) {
-                        const targetUrl = node.url.startsWith('/cnetworks-net') ? node.url : `/cnetworks-net${node.url}`;
-                        window.location = targetUrl;
+                        window.location = getSiteUrl(node.url);
                     }
                 }
             })
