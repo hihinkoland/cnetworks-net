@@ -1,8 +1,8 @@
 ---
-{"dg-publish":true,"permalink":"/Stats/","tags":["gardenEntry"],"updated":"2026-11-24T17:37:28.373+01:00","dg-note-properties":{}}
+{"dg-publish":true,"permalink":"/Stats/","tags":["gardenEntry"],"updated":"2026-11-24T18:00:00.741+01:00","dg-note-properties":{}}
 ---
 
-[Open Full Network View](/cnetworks-net/network/)
+[Open Full Network View](/network/)
 # Network Map Stats
 
 **Total Devices:** 79
