@@ -105,10 +105,10 @@ permalink: /network/
     function color_override(tags, hue, saturation, lightness) {
       // CONFIGURABLE AREA: add custom color overrides based on tags here
       if (tags.has('maybe_chatserver') && tags.has('has_dns_name')) {
-        lightness *= 0.75;
+        lightness *= 0.45;
       }
       if (tags.has('dns') && tags.has('chatserver') && tags.has('has_dns_name')) {
-        hue /= 2; // bring closer to red
+        hue /= 3; // bring closer to red
       }
       // END CONFIGURABLE AREA
       return hslToRgb([hue, saturation, lightness]);
