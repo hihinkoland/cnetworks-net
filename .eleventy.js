@@ -912,6 +912,7 @@ module.exports = function(eleventyConfig) {
       output: "dist",
       data: `_data`,
     },
+    pathPrefix: "/cnetworks-net/",
     templateFormats: ["njk", "md", "11ty.js", "canvas"],
     htmlTemplateEngine: "njk",
     markdownTemplateEngine: false,
