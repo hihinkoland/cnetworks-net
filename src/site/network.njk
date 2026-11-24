@@ -83,8 +83,8 @@ permalink: /network/
       chatserver: 0x22ff22,
       maybe_chatserver: 0x006700,
       has_dns_name: 0x4444ff,
-      bcs_alt_ula: 0xff9922,
-      dacs_ip6: 0x99ff22,
+      bcs_alt_ula: 0xff7722,
+      dacs_ip6: 0xbbff22,
     };
     const DEFAULT_COLOR = 0x757575;
     const NO_DACS_IP4_COLOR = 0x854585;
@@ -101,6 +101,18 @@ permalink: /network/
     const LABEL_HIDE_SCALE = 0.7;
     const DEFAULT_SCALE = 2.0;
     const HIDE_TAGS = new Set(['note', 'index']);
+
+    function color_override(tags, hue, saturation, lightness) {
+      // CONFIGURABLE AREA: add custom color overrides based on tags here
+      if (tags.has('maybe_chatserver') && tags.has('has_dns_name')) {
+        lightness *= 0.75;
+      }
+      if (tags.has('dns') && tags.has('chatserver') && tags.has('has_dns_name')) {
+        hue /= 2; // bring closer to red
+      }
+      // END CONFIGURABLE AREA
+      return hslToRgb([hue, saturation, lightness]);
+    }
 
     function normalizeTag(tag) {
       return String(tag).trim().replace(/^#+\s*/, '').trim().toLowerCase();
@@ -155,7 +167,7 @@ permalink: /network/
       ].map(channel => Math.round(channel * 255));
     }
 
-    function mixColors(colors) {
+    function mixColors(colors, tags) {
       const hslColors = colors.map(rgbToHsl);
       const hueX = hslColors.reduce((total, [hue, saturation]) =>
         total + Math.cos(hue * 2 * Math.PI) * saturation, 0);
@@ -169,7 +181,7 @@ permalink: /network/
         ? hslColors.reduce((total, [, value]) => total + value, 0) / hslColors.length
         : 0;
       const lightness = hslColors.reduce((total, [, , value]) => total + value, 0) / hslColors.length;
-      return hslToRgb([hue, saturation, lightness]);
+      return color_override(tags, hue, saturation, lightness);
     }
 
     function getNodeTagList(node) {
@@ -200,7 +212,7 @@ permalink: /network/
         .map(([, color]) => colorToRgb(color));
 
       if (roleColors.length > 0) {
-        return mixColors(roleColors);
+        return mixColors(roleColors, tags);
       }
 
       if (!tags.has('dacs_ip4')) return colorToRgb(NO_DACS_IP4_COLOR);
