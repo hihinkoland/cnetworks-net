@@ -2,7 +2,6 @@
 {"dg-publish":true,"permalink":"/devices/sebas--edu-vm-vl51/","dg-note-properties":{}}
 ---
 
-
 # `sebas--edu-vm-vl51`
 
 **Machine Name:** sebas--edu-vm-vl51

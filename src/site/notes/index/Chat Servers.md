@@ -2,7 +2,9 @@
 {"dg-publish":true,"permalink":"/index/Chat Servers/","tags":["index"],"dg-note-properties":{"tags":["index"]}}
 ---
 
+
 # Chat Servers
+
 
 | Device                                  | ID  | Name                                | Hostname                            | MAC Address       |
 |-----------------------------------------|-----|-------------------------------------|-------------------------------------|-------------------|

@@ -3,16 +3,18 @@
 ---
 
 [Open Full Network View](/network/)
+
 # Network Map Stats
 
-**Total Devices:** 79
-**Total Tags:** 49
-**Total DNS Records:** 52
+**[[dumps/device\|Total Devices]]:** 79
+**[[dumps/device\|Total Tags]]:** 49
+**[[dumps/dns_records\|Total DNS Records]]:** 52
 
 **Last Updated:** 2026-11-24 14:09:10
 
 ## Device Counts by Tag
-
+[[index/Device|> All devices: 79
+]]
 | Tag                             | TID              | Device Count |
 |---------------------------------|------------------|--------------|
 | DNS Servers                     | dns              |            1 |
@@ -25,7 +27,7 @@
 
 ## DNS Server Statistics
 
-**Total DNS Servers:** 1
+**[[index/Dns\|Total DNS Servers]]:** 1
 
 | DNS Server     | Record Count | Non-PTR | Pointless |
 |----------------|--------------|---------|-----------|

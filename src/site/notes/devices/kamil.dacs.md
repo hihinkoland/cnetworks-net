@@ -1,5 +1,5 @@
 ---
-{"dg-publish":true,"permalink":"/devices/kamil.dacs/","tags":["dns","dacs_ip4","has_dns_name","dacs_ip6","bcs_alt_ula","chatserver"],"dg-note-properties":{"tags":["dns","dacs_ip4","has_dns_name","dacs_ip6","bcs_alt_ula","chatserver"]}}
+{"dg-publish":true,"permalink":"/devices/kamil.dacs/","tags":["bcs_alt_ula","has_dns_name","dns","dacs_ip4","chatserver","dacs_ip6"],"dg-note-properties":{"tags":["bcs_alt_ula","has_dns_name","dns","dacs_ip4","chatserver","dacs_ip6"]}}
 ---
 
 # `kamil.dacs`
@@ -7,8 +7,6 @@
 **Device ID:** 21
 **Device Name:** kamil.dacs
 **MAC Address:** da:ea:4f:d1:af:02
-
-> That's me!
 
 ## IP Addresses
 - `100.110.120.21`
