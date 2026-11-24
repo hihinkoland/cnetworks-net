@@ -53,8 +53,8 @@ permalink: /network/
     <label>Link Distance: <span id="distVal">25</span>
       <input type="range" id="dist" min="10" max="500" value="25">
     </label>
-    <label>Center Gravity: <span id="centerVal">0.03</span>
-      <input type="range" id="center" min="0" max="1" step="any" value="0.03">
+    <label>Center Gravity: <span id="centerVal">0.15</span>
+      <input type="range" id="center" min="0" max="1" step="any" value="0.15">
     </label>
     <label>Grouping Force: <span id="groupingForceVal">0.1</span>
       <input type="range" id="groupingForce" min="0" max="1" step="0.01" value="0.1">
@@ -79,31 +79,94 @@ permalink: /network/
     const BASE = "{{ '/' | url }}".replace(/\/$/, '');
     const DEVICE_PATH = '/devices';
     const ROLE_TAG_COLORS = {
-      dns: 0xff0000,
-      chatserver: 0x00ff00,
-      has_dns_name: 0x0000ff
+      dns: 0xff2222,
+      chatserver: 0x22ff22,
+      has_dns_name: 0x2222ff
     };
     const DEFAULT_COLOR = 0xababab;
-    const MAYBE_CHATSERVER_COLOR = 0x009800;
+    const MAYBE_CHATSERVER_COLOR = 0x008800;
     const NO_DACS_IP4_COLOR = 0x854585;
     const GROUPS = [
-      { tag: 'chatserver', label: 'Chat servers', icon: 'C', color: ROLE_TAG_COLORS.chatserver, x: 90, y: 0 },
-      { tag: 'maybe_chatserver', label: 'Maybe chat servers', icon: '?', color: MAYBE_CHATSERVER_COLOR, x: 90, y: -80 },
+      { tag: 'chatserver', label: 'Chat servers', icon: 'C', color: ROLE_TAG_COLORS.chatserver, x: 200, y: 0 },
+      { tag: 'maybe_chatserver', label: 'Maybe chat servers', icon: 'M', color: MAYBE_CHATSERVER_COLOR, x: 20, y: -200 },
       { tag: 'dacs_ip4', label: 'DACS IPv4', icon: '4', color: 0x9b7cff, x: 0, y: 100 },
-      { tag: 'dns', label: 'DNS', icon: 'D', color: ROLE_TAG_COLORS.dns, x: -100, y: -50 }
+      { tag: 'dns', label: 'DNS', icon: 'D', color: ROLE_TAG_COLORS.dns, x: -100, y: -100 }
     ];
     let groupingMode = 'point';
     let groupingStrength = 0.1;
     let showGroupAnchors = true;
     const LABEL_COMPACT_SCALE = 0.8;
     const LABEL_HIDE_SCALE = 0.5;
+    const HIDE_TAGS = new Set(['note', 'index']);
 
     function normalizeTag(tag) {
-      return String(tag).trim().replace(/^#+/, '').toLowerCase();
+      return String(tag).trim().replace(/^#+\s*/, '').trim().toLowerCase();
     }
 
     function colorToRgb(color) {
       return [(color >> 16) & 255, (color >> 8) & 255, color & 255];
+    }
+
+    function rgbToHsl(rgb) {
+      const [red, green, blue] = rgb.map(channel => channel / 255);
+      const max = Math.max(red, green, blue);
+      const min = Math.min(red, green, blue);
+      const lightness = (max + min) / 2;
+      let hue = 0;
+      let saturation = 0;
+
+      if (max !== min) {
+        const delta = max - min;
+        saturation = delta / (1 - Math.abs(2 * lightness - 1));
+        if (max === red) hue = (green - blue) / delta + (green < blue ? 6 : 0);
+        else if (max === green) hue = (blue - red) / delta + 2;
+        else hue = (red - green) / delta + 4;
+        hue /= 6;
+      }
+
+      return [hue, saturation, lightness];
+    }
+
+    function hslToRgb([hue, saturation, lightness]) {
+      if (saturation === 0) {
+        const gray = Math.round(lightness * 255);
+        return [gray, gray, gray];
+      }
+
+      const hueToRgb = (p, q, t) => {
+        if (t < 0) t += 1;
+        if (t > 1) t -= 1;
+        if (t < 1 / 6) return p + (q - p) * 6 * t;
+        if (t < 1 / 2) return q;
+        if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+        return p;
+      };
+      const q = lightness < 0.5
+        ? lightness * (1 + saturation)
+        : lightness + saturation - lightness * saturation;
+      const p = 2 * lightness - q;
+      return [
+        hueToRgb(p, q, hue + 1 / 3),
+        hueToRgb(p, q, hue),
+        hueToRgb(p, q, hue - 1 / 3)
+      ].map(channel => Math.round(channel * 255));
+    }
+
+    function mixColors(colors) {
+      const hslColors = colors.map(rgbToHsl);
+      const hueX = hslColors.reduce((total, [hue, saturation]) =>
+        total + Math.cos(hue * 2 * Math.PI) * saturation, 0);
+      const hueY = hslColors.reduce((total, [hue, saturation]) =>
+        total + Math.sin(hue * 2 * Math.PI) * saturation, 0);
+      const hueMagnitude = Math.hypot(hueX, hueY);
+      const hue = hueMagnitude > 1e-6
+        ? (Math.atan2(hueY, hueX) + 2 * Math.PI) % (2 * Math.PI) / (2 * Math.PI)
+        : 0;
+      const saturation = hueMagnitude > 1e-6
+        ? hslColors.reduce((total, [, value]) => total + value, 0) / hslColors.length
+        : 0;
+      const lightness = hslColors.reduce((total, [, , value]) => total + value, 0) / hslColors.length;
+      return hslToRgb([hue, saturation, lightness]);
     }
 
     function getNodeTagList(node) {
@@ -134,9 +197,7 @@ permalink: /network/
         .map(([, color]) => colorToRgb(color));
 
       if (roleColors.length > 0) {
-        return [0, 1, 2].map(channel =>
-          Math.round(roleColors.reduce((total, color) => total + color[channel], 0) / roleColors.length)
-        );
+        return mixColors(roleColors);
       }
 
       if (!tags.has('dacs_ip4')) return colorToRgb(NO_DACS_IP4_COLOR);
@@ -185,8 +246,8 @@ permalink: /network/
           .map(link => ({ ...link, source: getNodeId(link.source), target: getNodeId(link.target) }));
         const groupingLinks = deviceNodes.flatMap(node =>
           nodeGroups.get(node.id).map(group => ({
-            source: node.id,
-            target: anchorsByTag.get(group.tag).id,
+            source: anchorsByTag.get(group.tag).id,
+            target: node.id,
             isGroupingLink: true,
             group
           }))
@@ -219,9 +280,9 @@ permalink: /network/
           .nodeLabel(node => node.title || node.id)
           .linkVisibility(link => !link.isGroupingLink || (groupingMode === 'node' && showGroupAnchors))
           .linkColor(link => link.isGroupingLink
-            ? `rgba(${colorToRgb(link.group.color).join(',')},0.65)`
-            : 'rgba(255,255,255,0.2)')
-          .linkDirectionalArrowLength(link => link.isGroupingLink ? 6 : 4)
+            ? 'rgba(103,103,103,0.67)'
+            : 'rgba(220,221,222,0.7)')
+          .linkDirectionalArrowLength(link => link.isGroupingLink ? 6 : 7)
           .linkDirectionalArrowRelPos(1)
           .linkDirectionalParticles(link => link.isGroupingLink ? 0 : 1)
           .linkDirectionalParticleSpeed(0.004)
@@ -274,12 +335,13 @@ permalink: /network/
               ? `${node.group.label} group center`
               : node.title || node.url || String(node.id);
             nodeInfoTags.replaceChildren();
-            const tags = node.isGroupAnchor
+            const rawTags = node.isGroupAnchor
               ? [`# ${node.group.tag}`, 'Drag to move this group center']
               : nodeTagLists.get(node.id) || [];
+            const tags = rawTags.filter(tag => !HIDE_TAGS.has(normalizeTag(tag)));
             if (tags.length === 0) {
               const item = document.createElement('li');
-              item.textContent = 'No tags';
+              item.textContent = rawTags.length ? 'No visible tags' : 'No tags';
               nodeInfoTags.appendChild(item);
             } else {
               for (const tag of tags) {
