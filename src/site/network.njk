@@ -19,6 +19,7 @@ permalink: /network/
     }
     #controls label { display: block; margin-top: 10px; }
     #controls input[type="range"] { width: 100%; }
+    #controls input[type="checkbox"] { width: auto; margin-right: 6px; }
     #controls select { box-sizing: border-box; width: 100%; margin-top: 4px; padding: 4px; }
     a.back { color: #8b5cf6; text-decoration: none; font-weight: bold; }
     #node-info {
@@ -31,6 +32,12 @@ permalink: /network/
     }
     #node-info h2 { margin: 0; font-size: 15px; }
     #node-info ul { margin: 8px 0 0; padding-left: 18px; font-size: 13px; }
+    #graph-coordinates {
+      position: fixed; right: 16px; bottom: 16px; z-index: 11;
+      padding: 6px 10px; border: 1px solid #363636; border-radius: 6px;
+      background: #262626; color: #dcddde; font: 12px monospace;
+      font-variant-numeric: tabular-nums; pointer-events: none;
+    }
   </style>
 </head>
 <body>
@@ -59,11 +66,13 @@ permalink: /network/
         <option value="none">none</option>
       </select>
     </label>
+    <label><input type="checkbox" id="showGroupAnchors" checked> Show grouping anchors</label>
   </div>
   <aside id="node-info" aria-live="polite" hidden>
     <h2 id="node-info-name"></h2>
     <ul id="node-info-tags"></ul>
   </aside>
+  <output id="graph-coordinates" aria-label="Graph coordinates" hidden></output>
   <div id="graph"></div>
 
   <script>
@@ -75,7 +84,7 @@ permalink: /network/
       has_dns_name: 0x0000ff
     };
     const DEFAULT_COLOR = 0xababab;
-    const MAYBE_CHATSERVER_COLOR = 0x989898;
+    const MAYBE_CHATSERVER_COLOR = 0x009800;
     const NO_DACS_IP4_COLOR = 0x854585;
     const GROUPS = [
       { tag: 'chatserver', label: 'Chat servers', icon: 'C', color: ROLE_TAG_COLORS.chatserver, x: 90, y: 0 },
@@ -85,6 +94,9 @@ permalink: /network/
     ];
     let groupingMode = 'point';
     let groupingStrength = 0.1;
+    let showGroupAnchors = true;
+    const LABEL_COMPACT_SCALE = 0.8;
+    const LABEL_HIDE_SCALE = 0.5;
 
     function normalizeTag(tag) {
       return String(tag).trim().replace(/^#+/, '').toLowerCase();
@@ -103,6 +115,17 @@ permalink: /network/
 
     function normalizeTags(node) {
       return new Set(getNodeTagList(node).map(normalizeTag).filter(Boolean));
+    }
+
+    function drawNodeLabel(ctx, label, x, y, globalScale) {
+      if (globalScale <= LABEL_HIDE_SCALE) return;
+
+      const compact = globalScale <= LABEL_COMPACT_SCALE;
+      ctx.font = `${(compact ? 9 : 12) / globalScale}px Sans-Serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.fillStyle = compact ? 'rgba(220,221,222,0.45)' : '#dcddde';
+      ctx.fillText(label, x, y);
     }
 
     function colorNode(tags) {
@@ -156,30 +179,51 @@ permalink: /network/
         const anchorsByTag = new Map(groupAnchors.map(anchor => [anchor.group.tag, anchor]));
         const nodes = [...deviceNodes, ...groupAnchors];
         const nodeIds = new Set(deviceNodes.map(node => node.id));
-        const links = (raw.links || []).filter(link => nodeIds.has(link.source) && nodeIds.has(link.target));
+        const getNodeId = endpoint => typeof endpoint === 'object' && endpoint !== null ? endpoint.id : endpoint;
+        const baseLinks = (raw.links || [])
+          .filter(link => nodeIds.has(getNodeId(link.source)) && nodeIds.has(getNodeId(link.target)))
+          .map(link => ({ ...link, source: getNodeId(link.source), target: getNodeId(link.target) }));
+        const groupingLinks = deviceNodes.flatMap(node =>
+          nodeGroups.get(node.id).map(group => ({
+            source: node.id,
+            target: anchorsByTag.get(group.tag).id,
+            isGroupingLink: true,
+            group
+          }))
+        );
+        const getGraphLinks = () => [
+          ...baseLinks.map(link => ({ ...link })),
+          ...(groupingMode === 'node' ? groupingLinks.map(link => ({ ...link })) : [])
+        ];
         const nodeInfo = document.getElementById('node-info');
         const nodeInfoName = document.getElementById('node-info-name');
         const nodeInfoTags = document.getElementById('node-info-tags');
+        const graphCoordinates = document.getElementById('graph-coordinates');
         const repelInput = document.getElementById('repel');
         const linkStrengthInput = document.getElementById('linkStrength');
         const distanceInput = document.getElementById('dist');
         const centerInput = document.getElementById('center');
         const groupingForceInput = document.getElementById('groupingForce');
         const groupingModeInput = document.getElementById('groupingMode');
+        const showGroupAnchorsInput = document.getElementById('showGroupAnchors');
         groupingMode = groupingModeInput.value;
         groupingStrength = Number(groupingForceInput.value);
+        showGroupAnchors = showGroupAnchorsInput.checked;
 
         const Graph = ForceGraph()(document.getElementById('graph'))
-          .graphData({ nodes, links })
+          .graphData({ nodes, links: getGraphLinks() })
           .backgroundColor('#1e1e1e')
           .nodeId('id')
           .nodeVal(node => node.isGroupAnchor ? 4 : 1)
-          .nodeVisibility(node => !node.isGroupAnchor || groupingMode !== 'none')
+          .nodeVisibility(node => !node.isGroupAnchor || (groupingMode !== 'none' && showGroupAnchors))
           .nodeLabel(node => node.title || node.id)
-          .linkColor(() => 'rgba(255,255,255,0.2)')
-          .linkDirectionalArrowLength(4)
+          .linkVisibility(link => !link.isGroupingLink || (groupingMode === 'node' && showGroupAnchors))
+          .linkColor(link => link.isGroupingLink
+            ? `rgba(${colorToRgb(link.group.color).join(',')},0.65)`
+            : 'rgba(255,255,255,0.2)')
+          .linkDirectionalArrowLength(link => link.isGroupingLink ? 6 : 4)
           .linkDirectionalArrowRelPos(1)
-          .linkDirectionalParticles(1)
+          .linkDirectionalParticles(link => link.isGroupingLink ? 0 : 1)
           .linkDirectionalParticleSpeed(0.004)
           .nodeCanvasObject((node, ctx, globalScale) => {
             if (node.isGroupAnchor) {
@@ -207,32 +251,18 @@ permalink: /network/
                 ctx.beginPath();
                 ctx.arc(node.x, node.y, 3, 0, 2 * Math.PI, false);
                 ctx.fill();
-                if (globalScale > 0.35) {
-                  ctx.font = `${Math.min(12 / globalScale, 12)}px Sans-Serif`;
-                  ctx.textAlign = 'center';
-                  ctx.textBaseline = 'top';
-                  ctx.fillStyle = '#dcddde';
-                  ctx.fillText(node.group.label, node.x, node.y + 7);
-                }
+                drawNodeLabel(ctx, node.group.label, node.x, node.y + 7, globalScale);
               }
               ctx.restore();
               return;
             }
 
             const label = node.title || node.id;
-            const fontSize = Math.min(12 / globalScale, 12);
             ctx.beginPath();
             ctx.arc(node.x, node.y, 3, 0, 2 * Math.PI, false);
             ctx.fillStyle = `rgb(${colorNode(nodeTags.get(node.id)).join(',')})`;
             ctx.fill();
-
-            if (globalScale > 0.35) {
-              ctx.font = `${fontSize}px Sans-Serif`;
-              ctx.textAlign = 'center';
-              ctx.textBaseline = 'top';
-              ctx.fillStyle = '#dcddde';
-              ctx.fillText(label, node.x, node.y + 7);
-            }
+            drawNodeLabel(ctx, label, node.x, node.y + 7, globalScale);
           })
           .onNodeHover(node => {
             if (!node) {
@@ -245,7 +275,7 @@ permalink: /network/
               : node.title || node.url || String(node.id);
             nodeInfoTags.replaceChildren();
             const tags = node.isGroupAnchor
-              ? [`#${node.group.tag}`, 'Drag to move this group center']
+              ? [`# ${node.group.tag}`, 'Drag to move this group center']
               : nodeTagLists.get(node.id) || [];
             if (tags.length === 0) {
               const item = document.createElement('li');
@@ -254,7 +284,7 @@ permalink: /network/
             } else {
               for (const tag of tags) {
                 const item = document.createElement('li');
-                item.textContent = node.isGroupAnchor && !tag.startsWith('#') ? tag : `#${tag}`;
+                item.textContent = tag;
                 nodeInfoTags.appendChild(item);
               }
             }
@@ -279,16 +309,44 @@ permalink: /network/
           });
 
         const initialRepel = Number(repelInput.value);
-        const initialLinkStrength = Number(linkStrengthInput.value);
         const initialLinkDistance = Number(distanceInput.value);
         const initialCenter = Number(centerInput.value);
+        const updateLinkStrengths = () => {
+          Graph.d3Force('link').strength(link => link.isGroupingLink
+            ? groupingStrength
+            : Number(linkStrengthInput.value));
+        };
         Graph.d3Force('charge').strength(node => node.isGroupAnchor ? 0 : -initialRepel);
-        Graph.d3Force('link').strength(initialLinkStrength).distance(initialLinkDistance);
+        updateLinkStrengths();
+        Graph.d3Force('link').distance(initialLinkDistance);
         Graph.d3Force('x', d3.forceX(0).strength(initialCenter));
         Graph.d3Force('y', d3.forceY(0).strength(initialCenter));
 
+        const graphCanvas = document.querySelector('#graph canvas');
+        let pointerPosition = null;
+        const updateGraphCoordinates = () => {
+          if (!pointerPosition) return;
+
+          const bounds = graphCanvas.getBoundingClientRect();
+          const center = Graph.centerAt();
+          const scale = Graph.zoom();
+          const x = center.x + (pointerPosition.x - bounds.left - bounds.width / 2) / scale;
+          const y = center.y + (pointerPosition.y - bounds.top - bounds.height / 2) / scale;
+          graphCoordinates.textContent = `x: ${x.toFixed(1)}  y: ${y.toFixed(1)}`;
+        };
+        graphCanvas.addEventListener('pointermove', event => {
+          pointerPosition = { x: event.clientX, y: event.clientY };
+          graphCoordinates.hidden = false;
+          updateGraphCoordinates();
+        });
+        graphCanvas.addEventListener('pointerleave', () => {
+          pointerPosition = null;
+          graphCoordinates.hidden = true;
+        });
+        Graph.onZoom(updateGraphCoordinates);
+
         const groupForce = alpha => {
-          if (groupingMode === 'none' || groupingStrength === 0) return;
+          if (groupingMode !== 'point' || groupingStrength === 0) return;
 
           for (const node of deviceNodes) {
             const groups = nodeGroups.get(node.id);
@@ -312,7 +370,7 @@ permalink: /network/
         linkStrengthInput.addEventListener('input', e => {
           const val = Number(e.target.value);
           document.getElementById('linkStrengthVal').textContent = val;
-          Graph.d3Force('link').strength(val);
+          updateLinkStrengths();
           Graph.d3ReheatSimulation();
         });
 
@@ -334,13 +392,25 @@ permalink: /network/
         groupingForceInput.addEventListener('input', e => {
           groupingStrength = Number(e.target.value);
           document.getElementById('groupingForceVal').textContent = groupingStrength.toFixed(2);
+          updateLinkStrengths();
           Graph.d3ReheatSimulation();
         });
 
+        const updateGroupingVisibility = () => {
+          Graph.nodeVisibility(node => !node.isGroupAnchor || (groupingMode !== 'none' && showGroupAnchors));
+          Graph.linkVisibility(link => !link.isGroupingLink || (groupingMode === 'node' && showGroupAnchors));
+          Graph.d3ReheatSimulation();
+        };
+
         groupingModeInput.addEventListener('change', e => {
           groupingMode = e.target.value;
-          Graph.nodeVisibility(node => !node.isGroupAnchor || groupingMode !== 'none');
-          Graph.d3ReheatSimulation();
+          Graph.graphData({ nodes, links: getGraphLinks() });
+          updateGroupingVisibility();
+        });
+
+        showGroupAnchorsInput.addEventListener('change', e => {
+          showGroupAnchors = e.target.checked;
+          updateGroupingVisibility();
         });
       });
   </script>
