@@ -1,5 +1,5 @@
 ---
-{"dg-publish":true,"permalink":"/devices/minh.dacs/","tags":["has_dns_name","chatserver","dacs_ip4"],"updated":"2026-11-24T18:18:58.198+01:00","dg-note-properties":{"tags":["has_dns_name","chatserver","dacs_ip4"]}}
+{"dg-publish":true,"permalink":"/devices/minh.dacs/","tags":["has_dns_name","chatserver","dacs_ip4"],"dg-note-properties":{"tags":["has_dns_name","chatserver","dacs_ip4"]}}
 ---
 
 # `minh.dacs`

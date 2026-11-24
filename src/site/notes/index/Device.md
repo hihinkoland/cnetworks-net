@@ -1,5 +1,5 @@
 ---
-{"dg-publish":true,"permalink":"/index/Device/","tags":["index"],"updated":"2026-11-24T16:28:06.306+01:00","dg-note-properties":{"tags":["index"]}}
+{"dg-publish":true,"permalink":"/index/Device/","tags":["index"],"dg-note-properties":{"tags":["index"]}}
 ---
 
 

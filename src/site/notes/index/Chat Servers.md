@@ -1,5 +1,5 @@
 ---
-{"dg-publish":true,"permalink":"/index/Chat Servers/","tags":["index"],"updated":"2026-11-24T16:57:32.390+01:00","dg-note-properties":{"tags":["index"]}}
+{"dg-publish":true,"permalink":"/index/Chat Servers/","tags":["index"],"dg-note-properties":{"tags":["index"]}}
 ---
 
 # Chat Servers

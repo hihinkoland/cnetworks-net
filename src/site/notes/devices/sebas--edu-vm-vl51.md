@@ -1,5 +1,5 @@
 ---
-{"dg-publish":true,"permalink":"/devices/sebas--edu-vm-vl51/","updated":"2026-11-24T18:19:34.985+01:00","dg-note-properties":{}}
+{"dg-publish":true,"permalink":"/devices/sebas--edu-vm-vl51/","dg-note-properties":{}}
 ---
 
 

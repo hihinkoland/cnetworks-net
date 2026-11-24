@@ -1,5 +1,5 @@
 ---
-{"dg-publish":true,"permalink":"/dumps/dns_records/","updated":"2026-11-24T16:28:06.310+01:00","dg-note-properties":{}}
+{"dg-publish":true,"permalink":"/dumps/dns_records/","dg-note-properties":{}}
 ---
 
 

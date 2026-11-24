@@ -1,5 +1,5 @@
 ---
-{"dg-publish":true,"permalink":"/devices/kamil.dacs/","tags":["dns","dacs_ip4","has_dns_name","dacs_ip6","bcs_alt_ula","chatserver"],"updated":"2026-11-24T16:57:50.954+01:00","dg-note-properties":{"tags":["dns","dacs_ip4","has_dns_name","dacs_ip6","bcs_alt_ula","chatserver"]}}
+{"dg-publish":true,"permalink":"/devices/kamil.dacs/","tags":["dns","dacs_ip4","has_dns_name","dacs_ip6","bcs_alt_ula","chatserver"],"dg-note-properties":{"tags":["dns","dacs_ip4","has_dns_name","dacs_ip6","bcs_alt_ula","chatserver"]}}
 ---
 
 # `kamil.dacs`

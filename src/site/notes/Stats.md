@@ -1,5 +1,5 @@
 ---
-{"dg-publish":true,"permalink":"/Stats/","tags":["gardenEntry"],"updated":"2026-11-24T18:00:00.741+01:00","dg-note-properties":{}}
+{"dg-publish":true,"permalink":"/Stats/","tags":["gardenEntry"],"dg-note-properties":{}}
 ---
 
 [Open Full Network View](/network/)
