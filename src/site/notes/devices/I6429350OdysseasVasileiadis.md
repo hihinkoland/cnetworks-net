@@ -1,5 +1,5 @@
 ---
-{"dg-publish":true,"permalink":"/devices/I6429350OdysseasVasileiadis/","tags":["chatserver","dacs_ip4"],"dg-note-properties":{"tags":["chatserver","dacs_ip4"]}}
+{"dg-publish":true,"permalink":"/devices/I6429350OdysseasVasileiadis/","tags":["dacs_ip4","chatserver"],"dg-note-properties":{"tags":["dacs_ip4","chatserver"]}}
 ---
 
 # `I6429350OdysseasVasileiadis`

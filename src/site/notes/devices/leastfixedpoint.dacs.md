@@ -1,5 +1,5 @@
 ---
-{"dg-publish":true,"permalink":"/devices/leastfixedpoint.dacs/","tags":["chatserver","has_dns_name","dacs_ip4"],"dg-note-properties":{"tags":["chatserver","has_dns_name","dacs_ip4"]}}
+{"dg-publish":true,"permalink":"/devices/leastfixedpoint.dacs/","tags":["dacs_ip4","has_dns_name","chatserver"],"dg-note-properties":{"tags":["dacs_ip4","has_dns_name","chatserver"]}}
 ---
 
 # `leastfixedpoint.dacs`

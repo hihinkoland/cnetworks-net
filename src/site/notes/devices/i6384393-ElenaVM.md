@@ -1,5 +1,5 @@
 ---
-{"dg-publish":true,"permalink":"/devices/i6384393-ElenaVM/","tags":["chatserver","dacs_ip4"],"dg-note-properties":{"tags":["chatserver","dacs_ip4"]}}
+{"dg-publish":true,"permalink":"/devices/i6384393-ElenaVM/","tags":["dacs_ip4","chatserver"],"dg-note-properties":{"tags":["dacs_ip4","chatserver"]}}
 ---
 
 # `i6384393-ElenaVM`

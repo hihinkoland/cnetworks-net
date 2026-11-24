@@ -1,5 +1,5 @@
 ---
-{"dg-publish":true,"permalink":"/devices/max-zalewski.dacs/","tags":["maybe_chatserver","has_dns_name","dacs_ip4"],"dg-note-properties":{"tags":["maybe_chatserver","has_dns_name","dacs_ip4"]}}
+{"dg-publish":true,"permalink":"/devices/max-zalewski.dacs/","tags":["dacs_ip4","maybe_chatserver","has_dns_name"],"dg-note-properties":{"tags":["dacs_ip4","maybe_chatserver","has_dns_name"]}}
 ---
 
 # `max-zalewski.dacs`

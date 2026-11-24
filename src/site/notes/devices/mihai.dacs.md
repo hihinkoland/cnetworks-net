@@ -1,5 +1,5 @@
 ---
-{"dg-publish":true,"permalink":"/devices/mihai.dacs/","tags":["has_dns_name","dacs_ip4"],"dg-note-properties":{"tags":["has_dns_name","dacs_ip4"]}}
+{"dg-publish":true,"permalink":"/devices/mihai.dacs/","tags":["dacs_ip4","has_dns_name"],"dg-note-properties":{"tags":["dacs_ip4","has_dns_name"]}}
 ---
 
 # `mihai.dacs`

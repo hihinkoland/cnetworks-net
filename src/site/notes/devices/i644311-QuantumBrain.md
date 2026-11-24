@@ -1,5 +1,5 @@
 ---
-{"dg-publish":true,"permalink":"/devices/i644311-QuantumBrain/","tags":["chatserver","dacs_ip4"],"dg-note-properties":{"tags":["chatserver","dacs_ip4"]}}
+{"dg-publish":true,"permalink":"/devices/i644311-QuantumBrain/","tags":["dacs_ip4","chatserver"],"dg-note-properties":{"tags":["dacs_ip4","chatserver"]}}
 ---
 
 # `i644311-QuantumBrain`

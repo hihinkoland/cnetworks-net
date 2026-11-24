@@ -1,5 +1,5 @@
 ---
-{"dg-publish":true,"permalink":"/devices/6418731-NetworksVM/","tags":["chatserver","dacs_ip4"],"dg-note-properties":{"tags":["chatserver","dacs_ip4"]}}
+{"dg-publish":true,"permalink":"/devices/6418731-NetworksVM/","tags":["dacs_ip4","chatserver"],"dg-note-properties":{"tags":["dacs_ip4","chatserver"]}}
 ---
 
 # `6418731-NetworksVM`
