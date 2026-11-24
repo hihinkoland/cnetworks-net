@@ -348,7 +348,10 @@
                     const active = document.querySelector('.searchresult.active');
                     if (active) {
                         const url = active.dataset.url;
-                        if (url) window.location.href = url;
+                        if (url) {
+                            const targetUrl = url.startsWith('/cnetworks-net') ? url : `/cnetworks-net${url}`;
+                            window.location.href = targetUrl;
+                        }
                     }
                 }
             }
