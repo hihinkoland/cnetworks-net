@@ -1,5 +1,5 @@
 ---
-{"dg-publish":true,"permalink":"/dumps/device/","dg-note-properties":{}}
+{"dg-publish":true,"permalink":"/dumps/device/","hideInGraph":true,"dg-note-properties":{}}
 ---
 
 
