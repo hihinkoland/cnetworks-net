@@ -25,17 +25,17 @@ permalink: /network/
   <div id="controls">
     <a class="back" href="/">← Back to Notes</a>
     <h3 style="margin: 8px 0 4px;">Physics Controls</h3>
-    <label>Repel Force: <span id="repelVal">-9.31174089068826</span>
-      <input type="range" id="repel" min="0" max="30" step="any" value="9.31174089068826">
+    <label>Repel Force: <span id="repelVal">-30</span>
+      <input type="range" id="repel" min="0" max="60" step="any" value="30">
     </label>
     <label>Link Strength: <span id="linkStrengthVal">1</span>
       <input type="range" id="linkStrength" min="0" max="2" step="0.01" value="1">
     </label>
-    <label>Link Distance: <span id="distVal">250</span>
-      <input type="range" id="dist" min="10" max="500" value="250">
+    <label>Link Distance: <span id="distVal">25</span>
+      <input type="range" id="dist" min="10" max="500" value="25">
     </label>
-    <label>Center Gravity: <span id="centerVal">0.540330115228901</span>
-      <input type="range" id="center" min="0" max="1" step="any" value="0.540330115228901">
+    <label>Center Gravity: <span id="centerVal">0.2</span>
+      <input type="range" id="center" min="0" max="1" step="any" value="0.2">
     </label>
   </div>
   <div id="graph"></div>
@@ -43,14 +43,14 @@ permalink: /network/
   <script>
     const BASE = "{{ '/' | url }}".replace(/\/$/, '');
     const DEVICE_PATH = '/devices';
-    const PATH_COLOR = 13108194;
-    const TAG_COLORS = {
-      dns: 14354954,
-      chatserver: 65344,
-      maybe_chatserver: 3374594,
-      has_dns_name: 16747146,
-      dacs_ip4: 11579568
+    const ROLE_TAG_COLORS = {
+      dns: 0xff5252,
+      chatserver: 0xb8ff5a,
+      has_dns_name: 0x579bff
     };
+    const DEFAULT_COLOR = 0xd9dee7;
+    const MAYBE_CHATSERVER_COLOR = 0xa6acb7;
+    const NO_DACS_IP4_COLOR = 0x5d6571;
 
     function normalizeTag(tag) {
       return String(tag).trim().replace(/^#+/, '').toLowerCase();
@@ -60,41 +60,27 @@ permalink: /network/
       return [(color >> 16) & 255, (color >> 8) & 255, color & 255];
     }
 
-    function colorForUnknownTag(tag) {
-      let hash = 0;
-      for (const character of tag) {
-        hash = (hash * 31 + character.charCodeAt(0)) | 0;
-      }
-      const hue = (hash >>> 0) % 360;
-      const chroma = 0.65 * 0.58;
-      const section = hue / 60;
-      const secondary = chroma * (1 - Math.abs(section % 2 - 1));
-      const offset = 0.58 - chroma / 2;
-      const channels = section < 1 ? [chroma, secondary, 0]
-        : section < 2 ? [secondary, chroma, 0]
-        : section < 3 ? [0, chroma, secondary]
-        : section < 4 ? [0, secondary, chroma]
-        : section < 5 ? [secondary, 0, chroma]
-        : [chroma, 0, secondary];
-      return channels.map(channel => Math.round((channel + offset) * 255));
-    }
-
-    function colorNode(node) {
+    function normalizeTags(node) {
       const tags = Array.isArray(node.tags) ? node.tags
         : typeof node.tags === 'string' ? node.tags.split(',')
         : [];
-      const uniqueTags = [...new Set(tags.map(normalizeTag).filter(Boolean))];
-      if (uniqueTags.length === 0) {
-        return colorToRgb(PATH_COLOR);
+      return new Set(tags.map(normalizeTag).filter(Boolean));
+    }
+
+    function colorNode(tags) {
+      const roleColors = Object.entries(ROLE_TAG_COLORS)
+        .filter(([tag]) => tags.has(tag))
+        .map(([, color]) => colorToRgb(color));
+
+      if (roleColors.length > 0) {
+        return [0, 1, 2].map(channel =>
+          Math.round(roleColors.reduce((total, color) => total + color[channel], 0) / roleColors.length)
+        );
       }
 
-      const colors = uniqueTags.map(tag => {
-        const color = TAG_COLORS[tag];
-        return color === undefined ? colorForUnknownTag(tag) : colorToRgb(color);
-      });
-      return [0, 1, 2].map(channel =>
-        Math.round(colors.reduce((total, color) => total + color[channel], 0) / colors.length)
-      );
+      if (!tags.has('dacs_ip4')) return colorToRgb(NO_DACS_IP4_COLOR);
+      if (tags.has('maybe_chatserver')) return colorToRgb(MAYBE_CHATSERVER_COLOR);
+      return colorToRgb(DEFAULT_COLOR);
     }
 
     function isInDevicePath(node) {
@@ -112,6 +98,7 @@ permalink: /network/
       .then(raw => {
         const allNodes = Array.isArray(raw.nodes) ? raw.nodes : Object.values(raw.nodes);
         const nodes = allNodes.filter(isInDevicePath);
+        const nodeTags = new Map(nodes.map(node => [node.id, normalizeTags(node)]));
         const nodeIds = new Set(nodes.map(node => node.id));
         const links = (raw.links || []).filter(link => nodeIds.has(link.source) && nodeIds.has(link.target));
 
@@ -129,8 +116,8 @@ permalink: /network/
             const label = node.title || node.id;
             const fontSize = 12 / globalScale;
             ctx.beginPath();
-            ctx.arc(node.x, node.y, 5, 0, 2 * Math.PI, false);
-            ctx.fillStyle = `rgb(${colorNode(node).join(',')})`;
+            ctx.arc(node.x, node.y, 3, 0, 2 * Math.PI, false);
+            ctx.fillStyle = `rgb(${colorNode(nodeTags.get(node.id)).join(',')})`;
             ctx.fill();
 
             if (globalScale > 0.8) {
@@ -147,14 +134,29 @@ permalink: /network/
             window.location.href = target;
           });
 
-        const initialRepel = 9.31174089068826;
+        const initialRepel = 30;
         const initialLinkStrength = 1;
-        const initialLinkDistance = 250;
-        const initialCenter = 0.540330115228901;
+        const initialLinkDistance = 25;
+        const initialCenter = 0.2;
         Graph.d3Force('charge').strength(-initialRepel);
         Graph.d3Force('link').strength(initialLinkStrength).distance(initialLinkDistance);
         Graph.d3Force('x', d3.forceX(0).strength(initialCenter));
         Graph.d3Force('y', d3.forceY(0).strength(initialCenter));
+
+        const chatTagStrength = node => {
+          const tags = nodeTags.get(node.id);
+          return tags?.has('chatserver') || tags?.has('maybe_chatserver') ? 0.4 : 0;
+        };
+        Graph.d3Force('chat-cluster-x', d3.forceX(90).strength(chatTagStrength));
+        Graph.d3Force('chat-cluster-y', d3.forceY(0).strength(chatTagStrength));
+        Graph.d3Force(
+          'maybe-chatserver-outskirts',
+          d3.forceRadial(
+            node => nodeTags.get(node.id)?.has('maybe_chatserver') ? 80 : 0,
+            90,
+            0
+          ).strength(node => nodeTags.get(node.id)?.has('maybe_chatserver') ? 0.45 : 0)
+        );
 
         document.getElementById('repel').addEventListener('input', e => {
           const val = Number(e.target.value);
