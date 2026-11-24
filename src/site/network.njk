@@ -184,10 +184,10 @@ permalink: /network/
       if (globalScale <= LABEL_HIDE_SCALE) return;
 
       const compact = globalScale <= LABEL_COMPACT_SCALE;
-      ctx.font = `${(compact ? 9 : 12) / globalScale}px Sans-Serif`;
+      ctx.font = `${(compact ? 8 : 12) / globalScale}px Sans-Serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
-      ctx.fillStyle = compact ? 'rgba(220,221,222,0.45)' : '#dcddde';
+      ctx.fillStyle = compact ? 'rgba(220,221,222,0.75)' : '#dcddde';
       ctx.fillText(label, x, y);
     }
 
