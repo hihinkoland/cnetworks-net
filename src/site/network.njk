@@ -19,6 +19,16 @@ permalink: /network/
     #controls label { display: block; margin-top: 10px; }
     #controls input[type="range"] { width: 100%; }
     a.back { color: #8b5cf6; text-decoration: none; font-weight: bold; }
+    #node-info {
+      position: fixed; top: 16px; right: 16px; z-index: 11;
+      box-sizing: border-box; max-width: min(320px, calc(100vw - 32px));
+      max-height: calc(100vh - 32px); overflow-y: auto;
+      padding: 12px 16px; border: 1px solid #363636; border-radius: 8px;
+      background: #262626; color: #dcddde; box-shadow: 0 4px 16px #0008;
+      pointer-events: none;
+    }
+    #node-info h2 { margin: 0; font-size: 15px; }
+    #node-info ul { margin: 8px 0 0; padding-left: 18px; font-size: 13px; }
   </style>
 </head>
 <body>
@@ -38,6 +48,10 @@ permalink: /network/
       <input type="range" id="center" min="0" max="1" step="any" value="0.2">
     </label>
   </div>
+  <aside id="node-info" aria-live="polite" hidden>
+    <h2 id="node-info-name"></h2>
+    <ul id="node-info-tags"></ul>
+  </aside>
   <div id="graph"></div>
 
   <script>
@@ -60,11 +74,15 @@ permalink: /network/
       return [(color >> 16) & 255, (color >> 8) & 255, color & 255];
     }
 
-    function normalizeTags(node) {
+    function getNodeTagList(node) {
       const tags = Array.isArray(node.tags) ? node.tags
         : typeof node.tags === 'string' ? node.tags.split(',')
         : [];
-      return new Set(tags.map(normalizeTag).filter(Boolean));
+      return [...new Set(tags.map(tag => String(tag).trim().replace(/^#+/, '')).filter(Boolean))];
+    }
+
+    function normalizeTags(node) {
+      return new Set(getNodeTagList(node).map(normalizeTag).filter(Boolean));
     }
 
     function colorNode(tags) {
@@ -99,8 +117,12 @@ permalink: /network/
         const allNodes = Array.isArray(raw.nodes) ? raw.nodes : Object.values(raw.nodes);
         const nodes = allNodes.filter(isInDevicePath);
         const nodeTags = new Map(nodes.map(node => [node.id, normalizeTags(node)]));
+        const nodeTagLists = new Map(nodes.map(node => [node.id, getNodeTagList(node)]));
         const nodeIds = new Set(nodes.map(node => node.id));
         const links = (raw.links || []).filter(link => nodeIds.has(link.source) && nodeIds.has(link.target));
+        const nodeInfo = document.getElementById('node-info');
+        const nodeInfoName = document.getElementById('node-info-name');
+        const nodeInfoTags = document.getElementById('node-info-tags');
 
         const Graph = ForceGraph()(document.getElementById('graph'))
           .graphData({ nodes, links })
@@ -127,6 +149,28 @@ permalink: /network/
               ctx.fillStyle = '#dcddde';
               ctx.fillText(label, node.x, node.y + 7);
             }
+          })
+          .onNodeHover(node => {
+            if (!node) {
+              nodeInfo.hidden = true;
+              return;
+            }
+
+            nodeInfoName.textContent = node.title || node.url || String(node.id);
+            nodeInfoTags.replaceChildren();
+            const tags = nodeTagLists.get(node.id) || [];
+            if (tags.length === 0) {
+              const item = document.createElement('li');
+              item.textContent = 'No tags';
+              nodeInfoTags.appendChild(item);
+            } else {
+              for (const tag of tags) {
+                const item = document.createElement('li');
+                item.textContent = `#${tag}`;
+                nodeInfoTags.appendChild(item);
+              }
+            }
+            nodeInfo.hidden = false;
           })
           .onNodeClick(node => {
             if (!node.url) return;
