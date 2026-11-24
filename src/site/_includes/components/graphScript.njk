@@ -570,7 +570,7 @@ pagePanelMedia.addEventListener('change', evt => {
     </div>
     <div id="link-graph"></div>
     {% if graph.nodes[page.url] or graph.nodes[graph.homeAlias] %}
-    <a class="network-map-link" href="{{ '/' | url }}network/">
+    <a class="network-map-link" href="/network/">
         <i data-lucide="network" aria-hidden="true"></i>
         <span>Open network map</span>
     </a>
