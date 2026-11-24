@@ -17,6 +17,14 @@ async function buildGraph(notes) {
 }
 
 describe("linkUtils getGraph hide flags", () => {
+  it("includes note tags in graph nodes", async () => {
+    const graph = await buildGraph([
+      makeNote("devices/test", { tags: ["chatserver", "dacs_ip4"] }),
+    ]);
+
+    expect(graph.nodes["/devices/test/"].tags).toEqual(["chatserver", "dacs_ip4"]);
+  });
+
   it("does not hide or privatize a normal note", async () => {
     const graph = await buildGraph([makeNote("normal")]);
     expect(graph.nodes["/normal/"].hide).toBe(false);

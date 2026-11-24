@@ -256,6 +256,11 @@ async function computeGraph(data) {
       title: v.data.title || v.fileSlug,
       url: v.url,
       group,
+      tags: Array.isArray(v.data.tags)
+        ? v.data.tags
+        : typeof v.data.tags === "string"
+          ? v.data.tags.split(",").map((tag) => tag.trim()).filter(Boolean)
+          : [],
       home:
         v.data["dg-home"] ||
         (v.data.tags && v.data.tags.indexOf("gardenEntry") > -1) ||

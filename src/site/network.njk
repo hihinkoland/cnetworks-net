@@ -6,7 +6,8 @@ permalink: /network/
 <head>
   <meta charset="utf-8" />
   <title>Network View</title>
-  <script src="https://unpkg.com"></script>
+  <script src="https://unpkg.com/d3-force@3"></script>
+  <script src="https://unpkg.com/force-graph"></script>
   <style>
     body { margin: 0; background: #1e1e1e; color: #dcddde; font-family: sans-serif; overflow: hidden; }
     #graph { width: 100vw; height: 100vh; }
@@ -24,35 +25,104 @@ permalink: /network/
   <div id="controls">
     <a class="back" href="/cnetworks-net/">← Back to Notes</a>
     <h3 style="margin: 8px 0 4px;">Physics Controls</h3>
-    <label>Repel Force: <span id="repelVal">-120</span>
-      <input type="range" id="repel" min="-500" max="-10" value="-120">
+    <label>Repel Force: <span id="repelVal">-9.31174089068826</span>
+      <input type="range" id="repel" min="0" max="30" step="any" value="9.31174089068826">
     </label>
-    <label>Link Distance: <span id="distVal">60</span>
-      <input type="range" id="dist" min="10" max="250" value="60">
+    <label>Link Strength: <span id="linkStrengthVal">1</span>
+      <input type="range" id="linkStrength" min="0" max="2" step="0.01" value="1">
     </label>
-    <label>Center Gravity: <span id="centerVal">0.05</span>
-      <input type="range" id="center" min="0" max="0.5" step="0.01" value="0.05">
+    <label>Link Distance: <span id="distVal">250</span>
+      <input type="range" id="dist" min="10" max="500" value="250">
+    </label>
+    <label>Center Gravity: <span id="centerVal">0.540330115228901</span>
+      <input type="range" id="center" min="0" max="1" step="any" value="0.540330115228901">
     </label>
   </div>
   <div id="graph"></div>
 
   <script>
     const BASE = '/cnetworks-net';
+    const DEVICE_PATH = '/devices';
+    const PATH_COLOR = 13108194;
+    const TAG_COLORS = {
+      dns: 14354954,
+      chatserver: 65344,
+      maybe_chatserver: 3374594,
+      has_dns_name: 16747146,
+      dacs_ip4: 11579568
+    };
+
+    function normalizeTag(tag) {
+      return String(tag).trim().replace(/^#+/, '').toLowerCase();
+    }
+
+    function colorToRgb(color) {
+      return [(color >> 16) & 255, (color >> 8) & 255, color & 255];
+    }
+
+    function colorForUnknownTag(tag) {
+      let hash = 0;
+      for (const character of tag) {
+        hash = (hash * 31 + character.charCodeAt(0)) | 0;
+      }
+      const hue = (hash >>> 0) % 360;
+      const chroma = 0.65 * 0.58;
+      const section = hue / 60;
+      const secondary = chroma * (1 - Math.abs(section % 2 - 1));
+      const offset = 0.58 - chroma / 2;
+      const channels = section < 1 ? [chroma, secondary, 0]
+        : section < 2 ? [secondary, chroma, 0]
+        : section < 3 ? [0, chroma, secondary]
+        : section < 4 ? [0, secondary, chroma]
+        : section < 5 ? [secondary, 0, chroma]
+        : [chroma, 0, secondary];
+      return channels.map(channel => Math.round((channel + offset) * 255));
+    }
+
+    function colorNode(node) {
+      const tags = Array.isArray(node.tags) ? node.tags
+        : typeof node.tags === 'string' ? node.tags.split(',')
+        : [];
+      const uniqueTags = [...new Set(tags.map(normalizeTag).filter(Boolean))];
+      if (uniqueTags.length === 0) {
+        return colorToRgb(PATH_COLOR);
+      }
+
+      const colors = uniqueTags.map(tag => {
+        const color = TAG_COLORS[tag];
+        return color === undefined ? colorForUnknownTag(tag) : colorToRgb(color);
+      });
+      return [0, 1, 2].map(channel =>
+        Math.round(colors.reduce((total, color) => total + color[channel], 0) / colors.length)
+      );
+    }
+
+    function isInDevicePath(node) {
+      let pathname = String(node.url || '').split(/[?#]/, 1)[0];
+      try {
+        pathname = decodeURI(pathname);
+      } catch {
+        // Keep the original URL if it contains malformed percent-encoding.
+      }
+      return pathname === DEVICE_PATH || pathname.startsWith(`${DEVICE_PATH}/`);
+    }
 
     fetch(`${BASE}/graph.json`)
       .then(res => res.json())
       .then(raw => {
-        // Digital Garden stores nodes as an object keyed by ID; convert to array
-        const nodes = Array.isArray(raw.nodes) ? raw.nodes : Object.values(raw.nodes);
-        const links = raw.links || [];
+        const allNodes = Array.isArray(raw.nodes) ? raw.nodes : Object.values(raw.nodes);
+        const nodes = allNodes.filter(isInDevicePath);
+        const nodeIds = new Set(nodes.map(node => node.id));
+        const links = (raw.links || []).filter(link => nodeIds.has(link.source) && nodeIds.has(link.target));
 
         const Graph = ForceGraph()(document.getElementById('graph'))
           .graphData({ nodes, links })
           .backgroundColor('#1e1e1e')
           .nodeId('id')
           .nodeLabel(node => node.title || node.id)
-          .nodeAutoColorBy(node => (node.tags && node.tags[0]) || 'default')
           .linkColor(() => 'rgba(255,255,255,0.2)')
+          .linkDirectionalArrowLength(4)
+          .linkDirectionalArrowRelPos(1)
           .linkDirectionalParticles(1)
           .linkDirectionalParticleSpeed(0.004)
           .nodeCanvasObject((node, ctx, globalScale) => {
@@ -60,7 +130,7 @@ permalink: /network/
             const fontSize = 12 / globalScale;
             ctx.beginPath();
             ctx.arc(node.x, node.y, 5, 0, 2 * Math.PI, false);
-            ctx.fillStyle = node.color || '#8b5cf6';
+            ctx.fillStyle = `rgb(${colorNode(node).join(',')})`;
             ctx.fill();
 
             if (globalScale > 0.8) {
@@ -77,14 +147,26 @@ permalink: /network/
             window.location.href = target;
           });
 
-        // Live Obsidian-style physics sliders
-        Graph.d3Force('charge').strength(-120);
-        Graph.d3Force('link').distance(60);
+        const initialRepel = 9.31174089068826;
+        const initialLinkStrength = 1;
+        const initialLinkDistance = 250;
+        const initialCenter = 0.540330115228901;
+        Graph.d3Force('charge').strength(-initialRepel);
+        Graph.d3Force('link').strength(initialLinkStrength).distance(initialLinkDistance);
+        Graph.d3Force('x', d3.forceX(0).strength(initialCenter));
+        Graph.d3Force('y', d3.forceY(0).strength(initialCenter));
 
         document.getElementById('repel').addEventListener('input', e => {
           const val = Number(e.target.value);
-          document.getElementById('repelVal').textContent = val;
-          Graph.d3Force('charge').strength(val);
+          document.getElementById('repelVal').textContent = `-${val}`;
+          Graph.d3Force('charge').strength(-val);
+          Graph.d3ReheatSimulation();
+        });
+
+        document.getElementById('linkStrength').addEventListener('input', e => {
+          const val = Number(e.target.value);
+          document.getElementById('linkStrengthVal').textContent = val;
+          Graph.d3Force('link').strength(val);
           Graph.d3ReheatSimulation();
         });
 
