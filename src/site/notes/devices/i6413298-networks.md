@@ -1,5 +1,5 @@
 ---
-{"dg-publish":true,"permalink":"/devices/i6413298-networks/","tags":["dacs_ip4","chatserver"],"dg-note-properties":{"tags":["dacs_ip4","chatserver"]}}
+{"dg-publish":true,"permalink":"/devices/i6413298-networks/","tags":["chatserver","dacs_ip4"],"dg-note-properties":{"tags":["chatserver","dacs_ip4"]}}
 ---
 
 # `i6413298-networks`

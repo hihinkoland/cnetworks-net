@@ -1,5 +1,5 @@
 ---
-{"dg-publish":true,"permalink":"/devices/I6412928-cnlabvmxxx/","tags":["dacs_ip4","chatserver"],"dg-note-properties":{"tags":["dacs_ip4","chatserver"]}}
+{"dg-publish":true,"permalink":"/devices/I6412928-cnlabvmxxx/","tags":["chatserver","dacs_ip4"],"dg-note-properties":{"tags":["chatserver","dacs_ip4"]}}
 ---
 
 # `I6412928-cnlabvmxxx`

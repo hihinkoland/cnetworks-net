@@ -1,5 +1,5 @@
 ---
-{"dg-publish":true,"permalink":"/devices/i6439079-BossKebab/","tags":["dacs_ip4","chatserver"],"dg-note-properties":{"tags":["dacs_ip4","chatserver"]}}
+{"dg-publish":true,"permalink":"/devices/i6439079-BossKebab/","tags":["chatserver","dacs_ip4"],"dg-note-properties":{"tags":["chatserver","dacs_ip4"]}}
 ---
 
 # `i6439079-BossKebab`

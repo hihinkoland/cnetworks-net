@@ -1,5 +1,5 @@
 ---
-{"dg-publish":true,"permalink":"/devices/aleks.dacs/","tags":["dacs_ip4","maybe_chatserver","has_dns_name"],"dg-note-properties":{"tags":["dacs_ip4","maybe_chatserver","has_dns_name"]}}
+{"dg-publish":true,"permalink":"/devices/aleks.dacs/","tags":["maybe_chatserver","dacs_ip4","has_dns_name"],"dg-note-properties":{"tags":["maybe_chatserver","dacs_ip4","has_dns_name"]}}
 ---
 
 # `aleks.dacs`

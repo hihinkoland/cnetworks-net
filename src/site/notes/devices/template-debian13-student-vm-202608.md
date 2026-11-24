@@ -1,5 +1,5 @@
 ---
-{"dg-publish":true,"permalink":"/devices/template-debian13-student-vm-202608/","tags":["dacs_ip4","chatserver"],"dg-note-properties":{"tags":["dacs_ip4","chatserver"]}}
+{"dg-publish":true,"permalink":"/devices/template-debian13-student-vm-202608/","tags":["chatserver","dacs_ip4"],"dg-note-properties":{"tags":["chatserver","dacs_ip4"]}}
 ---
 
 # `template-debian13-student-vm-202608`

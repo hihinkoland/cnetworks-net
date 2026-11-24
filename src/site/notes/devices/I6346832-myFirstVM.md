@@ -1,5 +1,5 @@
 ---
-{"dg-publish":true,"permalink":"/devices/I6346832-myFirstVM/","tags":["dacs_ip4","chatserver"],"dg-note-properties":{"tags":["dacs_ip4","chatserver"]}}
+{"dg-publish":true,"permalink":"/devices/I6346832-myFirstVM/","tags":["chatserver","dacs_ip4"],"dg-note-properties":{"tags":["chatserver","dacs_ip4"]}}
 ---
 
 # `I6346832-myFirstVM`
