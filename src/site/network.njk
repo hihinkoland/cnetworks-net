@@ -394,7 +394,7 @@ permalink: /network/
           const scale = Graph.zoom();
           const x = center.x + (pointerPosition.x - bounds.left - bounds.width / 2) / scale;
           const y = center.y + (pointerPosition.y - bounds.top - bounds.height / 2) / scale;
-          graphCoordinates.textContent = `x: ${x.toFixed(1)}  y: ${y.toFixed(1)}`;
+          graphCoordinates.textContent = `x: ${x.toFixed(1)}  y: ${y.toFixed(1)}  scale: ${scale.toFixed(2)}`;
         };
         graphCanvas.addEventListener('pointermove', event => {
           pointerPosition = { x: event.clientX, y: event.clientY };
